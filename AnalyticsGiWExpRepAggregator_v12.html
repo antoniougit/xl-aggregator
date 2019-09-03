@@ -1,0 +1,252 @@
+<!-- 
+    ************************************************************************************************
+    Analytics GiW Experiments Report Aggregator v1.2
+    george.achamnos@persado.com - Persado SDE team
+    29/08/2019
+
+    Revisions
+    --------
+
+    v1.2: Changed li.innerHTML to li.textContent. File input now only accepts specific file types.
+        Some layout/css compatibility changes.
+    
+    v1.1: Sorts downloaded CSV records by date.
+
+    v1.0: All files are opened and read, showing a list of them on screen. From the "Summary" sheet,
+        it retrieves the SECOND part of the date range (after the "-") and from the "Dataset1" sheet, it
+        retrieves all the data. It combines date + data in one row, with the appropriate column names
+        and "download csv" downloads an export.csv file with all the data.
+
+    *** The Excel files must follow THIS EXACT FORMAT (date format, column and sheet names etc.). If
+    anything changes and it doesn't work anymore, for any bugs or suggestions, please contact me. ***
+
+    * Only tested in Chrome. *
+    ************************************************************************************************
+ -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Analytics GiW Experiments Report Aggregator</title>
+    <style>
+        body {
+            font-family: Verdana, sans-serif;
+        }
+
+        p {
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-pack: center;
+            -ms-flex-pack: center;
+            justify-content: center;
+            text-decoration: underline;
+            margin-bottom: 80px;
+        }
+
+        a.download:link,
+        a.download:visited {
+            display: inline-block;
+            width: 150px;
+            text-align: center;
+            padding: 10px;
+            color: #333;
+            background-color: #fff;
+            font-size: 18px;
+            border: 1px solid #939393;
+            text-decoration: none;
+            -webkit-transition: all .3s;
+            -o-transition: all .3s;
+            transition: all .3s;
+            background: -o-linear-gradient(top, #f6f6f6 -50%, #dedede 110%);
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(-50%, #f6f6f6), color-stop(110%, #dedede));
+            background: linear-gradient(top, #f6f6f6 -50%, #dedede 110%);
+        }
+
+        a.download:hover,
+        a.download:active {
+            color: #ff0000;
+        }
+
+        .container {
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-orient: horizontal;
+            -webkit-box-direction: normal;
+            -ms-flex-direction: row;
+            flex-direction: row;
+            -webkit-box-pack: center;
+            -ms-flex-pack: center;
+            justify-content: center;
+            margin: 0 auto;
+            width: 100%;
+            height: 100%;
+        }
+
+        .buttons {
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+            flex-direction: column;
+            margin: 0 20px;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
+            align-items: center;
+        }
+
+        .info {
+            font-weight: bold;
+            margin: .5em;
+        }
+
+        .info:nth-of-type(2) {
+            margin-top: 50px;
+        }
+
+        #filesList {
+            border: 1px solid #000;
+            padding: 10px;
+            min-height: 150px;
+            width: 50%;
+            font-size: 14px;
+        }
+
+        #filesList ol li {
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.15.1/jszip.js"
+        integrity="sha256-T6Npk+Bn5Fz/MpPIEuOXz/xd8qvsNaYWOh+GQlmuFGs=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.15.1/xlsx.js"
+        integrity="sha256-dLuZBKmPeup0CmiNeIVn1q5Ad2oVVhuLROOxPINm9zw=" crossorigin="anonymous"></script>
+    <h1>Analytics GiW Experiments Report Aggregator</h1>
+    <div class="container">
+
+        <div class="buttons">
+            <p class="info">1. Select your Excel files</p>
+            <input type="file" accept=".xl*,.xm*,.txt,.csv" onchange="readFiles(this.files)" multiple>
+            <p class="info">2. Download the aggregated report</p>
+            <a class="download" href='#' onclick='downloadCSV({ filename: "export.csv" });'>Download CSV</a>
+        </div>
+        <div id="filesList">Selected files:
+            <ol></ol>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            if (typeof window.FileReader !== 'function') {
+                alert(`File API isn't supported on this browser yet.`);
+            }
+        }
+
+        let resultArray = [];
+
+        function readFiles(files) {
+            const ol = document.querySelector('#filesList ol');
+
+            for (let i = 0; i < files.length; i++) {
+                const name = files[i].name;
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const data = e.target.result;
+                    const workbook = XLSX.read(data, {
+                        type: 'binary'
+                    });
+                    workbook.SheetNames.forEach(function(sheetName) {
+                        const XL_row_object = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]);
+                        if (sheetName === 'Summary') {
+                            fileDate = XL_row_object[1]['GiW Experiments view'].split('-').pop();
+                        }
+                        if (sheetName === 'Dataset1') {
+                            fileData = XL_row_object[0];
+                        }
+                    })
+                    resultObj = Object.assign({
+                        date: fileDate
+                    }, fileData);
+                    resultArray.push(resultObj);
+                    const li = document.createElement('li');
+                    li.textContent = name;
+                    ol.appendChild(li);
+                }
+                reader.readAsBinaryString(files[i]);
+            }
+        }
+
+        function convertToCSV(args) {
+            let result = '',
+                counter,
+                keys,
+                columnDelimiter,
+                lineDelimiter,
+                data;
+
+            data = args.data || null;
+            if (data == null || !data.length) return null;
+
+            columnDelimiter = args.columnDelimiter || ',';
+            lineDelimiter = args.lineDelimiter || '\n';
+
+            keys = Object.keys(data[0]);
+
+            result += keys.join(columnDelimiter);
+            result += lineDelimiter;
+
+            data.forEach(function(item) {
+                counter = 0;
+                keys.forEach(function(key) {
+                    if (counter > 0) result += columnDelimiter;
+
+                    result += item[key];
+                    counter++;
+                });
+                result += lineDelimiter;
+            });
+            return result;
+        }
+
+        function downloadCSV(args) {
+            const resultArraySorted = resultArray.sort(function(a, b) {
+                return a.date - b.date;
+            });
+            let data,
+                filename,
+                link,
+                csv = convertToCSV({
+                    data: resultArraySorted
+                });
+            if (csv == null) return;
+
+            filename = args.filename || 'export.csv';
+
+            if (!csv.match(/^data:text\/csv/i)) {
+                csv = 'data:text/csv;charset=utf-8,' + csv;
+            }
+            data = encodeURI(csv);
+
+            link = document.createElement('a');
+            link.setAttribute('href', data);
+            link.setAttribute('download', filename);
+            link.click();
+        }
+    </script>
+</body>
+
+</html>
