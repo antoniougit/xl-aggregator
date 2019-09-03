@@ -1,10 +1,9 @@
 
 # Analytics GiW Experiments Report Aggregator v1.2
-### Persado SDE team
-### First revision: 29/08/2019
+Persado SDE team
+First revision: 29/08/2019
 
-Revisions
---------
+## Revisions
 
 v1.2: Changed li.innerHTML to li.textContent. File input now only accepts specific file types.
     Some layout/css compatibility changes.
