@@ -1,7 +1,7 @@
 
 # Analytics GiW Experiments Report Aggregator v1.2
-## Persado SDE team
-### 29/08/2019
+### Persado SDE team
+### First revision: 29/08/2019
 
 Revisions
 --------
@@ -19,4 +19,4 @@ v1.0: All files are opened and read, showing a list of them on screen. From the 
 *** The Excel files must follow THIS EXACT FORMAT (date format, column and sheet names etc.). If
 anything changes and it doesn't work anymore, for any bugs or suggestions, please contact me. ***
 
-* Only tested in Chrome. *
+** Only tested in Chrome. **
