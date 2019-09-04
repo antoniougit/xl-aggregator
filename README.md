@@ -1,6 +1,5 @@
 
 # Analytics GiW Experiments Report Aggregator v1.2
-Persado SDE team
 First revision: 29/08/2019
 
 ## Revisions
