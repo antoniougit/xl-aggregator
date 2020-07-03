@@ -5,7 +5,7 @@ First revision: 29/08/2019
 ## Revisions
 
 v1.2: Changed li.innerHTML to li.textContent. File input now only accepts specific file types.
-    Some layout/css compatibility changes.
+    Some layout/css compatibility changes. Added 3 sample spreadsheets for testing purposes.
 
 v1.1: Sorts downloaded CSV records by date.
 
